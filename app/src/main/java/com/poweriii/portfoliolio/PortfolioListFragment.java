@@ -1,27 +1,12 @@
 package com.poweriii.portfoliolio;
 
-import android.app.Dialog;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.IBinder;
-import android.text.Layout;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 
 /**
@@ -33,7 +18,7 @@ public class PortfolioListFragment extends Fragment {
 
     private static final String ARG_PORTFOLIO = "arg_p";
     private StockListAdapter mListAdapter;
-    private Portfolio portfolio;
+    private Portfolio mPortfolio;
 
     public PortfolioListFragment() {
         // Required empty public constructor
@@ -51,9 +36,9 @@ public class PortfolioListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            portfolio = (Portfolio)getArguments().getSerializable(ARG_PORTFOLIO);
+            mPortfolio = (Portfolio)getArguments().getSerializable(ARG_PORTFOLIO);
         }
-        mListAdapter = new StockListAdapter( this.getContext(), portfolio );
+        mListAdapter = new StockListAdapter( this.getContext(), mPortfolio);
         setHasOptionsMenu(true);
     }
 

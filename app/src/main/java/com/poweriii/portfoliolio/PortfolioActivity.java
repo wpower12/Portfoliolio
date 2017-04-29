@@ -12,16 +12,12 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -30,85 +26,14 @@ import java.util.ArrayList;
 public class PortfolioActivity extends Activity implements PortfolioListFragment.PortfolioInterface {
 
     private final static String FILE_URI = "stock_data";
-    private FragmentManager fm;
-    private PortfolioListFragment pf;
+    private FragmentManager mFragManager;
+    private PortfolioListFragment mPortfolioFragment;
 
     private StockInfoService mStockInfoService;
     private boolean mBound = false;
-    private Portfolio portfolio;
+    private Portfolio mPortfolio;
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = new Intent(this, StockInfoService.class);
-        bindService(intent, mStockServiceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mBound) {
-            unbindService(mStockServiceConnection);
-            mBound = false;
-        }
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_portfolio);
-
-        registerReceiver(mNewStockReceiver,
-                         new IntentFilter("com.poweriii.portfoliolio.STOCKREADY"));
-        registerReceiver(mUpdatedPortfolioReceiver,
-                         new IntentFilter("com.poweriii.portfoliolio.PORTFOLIO"));
-
-        portfolio = readFile();
-        pf = PortfolioListFragment.newInstance(portfolio);
-        fm = getFragmentManager();
-        fm.beginTransaction()
-                .replace(R.id.main_view, pf)
-                .commit();
-
-        if( !portfolio.stocks.isEmpty() ){
-            setDetail(0);
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(mNewStockReceiver);
-        unregisterReceiver(mUpdatedPortfolioReceiver);
-    }
-
-    @Override
-    public void setDetail(int position) {
-        int view_id;
-        if( findViewById(R.id.detail_view) != null ){
-            view_id = R.id.detail_view;
-        } else {
-            view_id = R.id.main_view;
-        }
-        fm.beginTransaction()
-                .replace(view_id, StockFragment.newInstance(portfolio.stocks.get(position)))
-                .addToBackStack("")
-                .commit();
-    }
-
-    @Override
-    public void requestNewStock(String symbol) {
-        if( mBound ){
-            mStockInfoService.sendStockRequest( symbol );
-        }
-    }
-
-    public void addNewStock(Stock s){
-        portfolio.addStock(s);
-        pf.updateNameList();
-        writeToFile( portfolio );
-        setDetail(portfolio.stocks.size()-1);
-    }
+    // Helper Class Members ************************************************************************
 
     private ServiceConnection mStockServiceConnection = new ServiceConnection() {
         @Override
@@ -138,6 +63,53 @@ public class PortfolioActivity extends Activity implements PortfolioListFragment
             readFile();
         }
     };
+
+    // Main Lifecycle Callbacks ********************************************************************
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, StockInfoService.class);
+        bindService(intent, mStockServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_portfolio);
+
+        registerReceiver(mNewStockReceiver,
+                         new IntentFilter("com.poweriii.portfoliolio.STOCKREADY"));
+        registerReceiver(mUpdatedPortfolioReceiver,
+                         new IntentFilter("com.poweriii.portfoliolio.PORTFOLIO"));
+
+        mPortfolio = readFile();
+        mPortfolioFragment = PortfolioListFragment.newInstance(mPortfolio);
+        mFragManager = getFragmentManager();
+        mFragManager.beginTransaction()
+                .replace(R.id.main_view, mPortfolioFragment)
+                .commit();
+
+        if( !mPortfolio.stocks.isEmpty() ){
+            setDetail(0);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mNewStockReceiver);
+        unregisterReceiver(mUpdatedPortfolioReceiver);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mBound) {
+            unbindService(mStockServiceConnection);
+            mBound = false;
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -173,12 +145,44 @@ public class PortfolioActivity extends Activity implements PortfolioListFragment
             });
             dialog.show();
         } else if( item.getItemId() == R.id.delete_portfolio ){
-            Log.d("IDK", "Deleting portfolio");
-            portfolio.stocks = new ArrayList<>();
-            pf.updateNameList();
-            writeToFile(portfolio);
+            Log.d("IDK", "Deleting mPortfolio");
+            mPortfolio.stocks = new ArrayList<>();
+            mPortfolioFragment.updateNameList();
+            writeToFile(mPortfolio);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    // PortfolioFragment Interface Methods *********************************************************
+
+    @Override
+    public void setDetail(int position) {
+        int view_id;
+        if( findViewById(R.id.detail_view) != null ){
+            view_id = R.id.detail_view;
+        } else {
+            view_id = R.id.main_view;
+        }
+        mFragManager.beginTransaction()
+                .replace(view_id, StockFragment.newInstance(mPortfolio.stocks.get(position)))
+                .addToBackStack("")
+                .commit();
+    }
+
+    @Override
+    public void requestNewStock(String symbol) {
+        if( mBound ){
+            mStockInfoService.sendStockRequest( symbol );
+        }
+    }
+
+    // Helper Methods ******************************************************************************
+
+    public void addNewStock(Stock s){
+        mPortfolio.addStock(s);
+        mPortfolioFragment.updateNameList();
+        writeToFile(mPortfolio);
+        setDetail(mPortfolio.stocks.size()-1);
     }
 
     private Portfolio readFile(){
