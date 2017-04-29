@@ -1,9 +1,14 @@
 package com.poweriii.portfoliolio;
 
+import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.IBinder;
 import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -13,7 +18,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -24,18 +31,18 @@ import android.widget.Toast;
  */
 public class PortfolioListFragment extends Fragment {
 
-    private static final String ARG_NAMES = "arg_names";
-    private String[] mNames;
+    private static final String ARG_PORTFOLIO = "arg_p";
     private StockListAdapter mListAdapter;
+    private Portfolio portfolio;
 
     public PortfolioListFragment() {
         // Required empty public constructor
     }
 
-    public static PortfolioListFragment newInstance(String[] names) {
+    public static PortfolioListFragment newInstance(Portfolio p) {
         PortfolioListFragment fragment = new PortfolioListFragment();
         Bundle args = new Bundle();
-        args.putStringArray(ARG_NAMES, names);
+        args.putSerializable(ARG_PORTFOLIO, p);
         fragment.setArguments(args);
         return fragment;
     }
@@ -44,9 +51,9 @@ public class PortfolioListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mNames = getArguments().getStringArray(ARG_NAMES);
+            portfolio = (Portfolio)getArguments().getSerializable(ARG_PORTFOLIO);
         }
-        mListAdapter = new StockListAdapter( this.getContext(), mNames );
+        mListAdapter = new StockListAdapter( this.getContext(), portfolio );
         setHasOptionsMenu(true);
     }
 
@@ -60,30 +67,19 @@ public class PortfolioListFragment extends Fragment {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ((PortfolioInterface)getActivity()).setDetail( mNames[position] );
+                ((PortfolioInterface)getActivity()).setDetail( position );
             }
         });
-
         return l;
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate( R.menu.action_menu_view, menu );
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if( item.getItemId() == R.id.new_stock ){
-            Toast.makeText(this.getContext(), "Clicked!", Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void updateNameList( ){
+        mListAdapter.notifyDataSetChanged();
     }
 
     // Need to communicate with parent - Interface
     public interface PortfolioInterface {
-        void setDetail(String symbol);
+        void setDetail(int position);
+        void requestNewStock(String s);
     }
 }

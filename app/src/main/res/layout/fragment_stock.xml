@@ -3,27 +3,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:elevation="3dp"
     android:orientation="vertical"
+    android:theme="@android:style/Theme.Material.Dialog.Presentation"
     tools:context="com.poweriii.portfoliolio.StockFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
-    <com.androidplot.xy.XYPlot
-        android:id="@+id/plot"
-        style="@style/APDefacto.Light"
-        android:layout_width="fill_parent"
+    <FrameLayout
+        android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_gravity="center"
         android:layout_weight="0.75"
-        android:theme="@style/APDefacto.Light"
-        ap:domainTitle="Time "
-        ap:lineLabelRotationBottom="-45"
-        ap:rangeTitle="Price ($)"
-        ap:title="1 Day Chart" />
+        android:clipToPadding="false"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:background="@color/ap_white"
+            android:contentDescription="@string/_1_day_chart"
+            android:elevation="5dp" />
+    </FrameLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_weight="0.09">
+        android:layout_height="0dp"
+        android:layout_weight=".25"
+        android:theme="@android:style/Theme.Material.Light.DialogWhenLarge">
 
         <TextView
             android:id="@+id/textCompanyPrice"
@@ -35,7 +42,8 @@
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
             android:text="$120.00"
-            android:textSize="30dp" />
+            android:textSize="30sp"
+            tools:ignore="HardcodedText" />
 
         <TextView
             android:id="@+id/textCompanyName"
@@ -48,8 +56,9 @@
             android:gravity="center"
             android:text="Company Name"
             android:textAlignment="gravity"
-            android:textSize="25dp"
-            android:textStyle="bold" />
+            android:textSize="25sp"
+            android:textStyle="bold"
+            tools:ignore="HardcodedText" />
     </RelativeLayout>
 
 </LinearLayout>

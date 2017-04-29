@@ -1,15 +1,19 @@
 package com.poweriii.portfoliolio;
 
 import android.content.Context;
+import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Layout;
+import android.text.format.DateFormat;
+import android.text.style.TtsSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -23,6 +27,9 @@ import com.squareup.picasso.Request;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Calendar;
+import java.util.Date;
 
 
 /**
@@ -47,12 +54,12 @@ public class StockFragment extends Fragment {
     /**
      * @return A new instance of fragment StockFragment.
      */
-    public static StockFragment newInstance(String symbol, String name, double price) {
+    public static StockFragment newInstance(Stock s) {
         StockFragment fragment = new StockFragment();
         Bundle args = new Bundle();
-        args.putString(SYMBOL_ARG, symbol);
-        args.putString(NAME_ARG, name);
-        args.putDouble(PRICE_ARG, price);
+        args.putString(SYMBOL_ARG, s.mStockSymbol);
+        args.putString(NAME_ARG, s.mStockName);
+        args.putDouble(PRICE_ARG, s.mStockPrice);
         fragment.setArguments(args);
         return fragment;
     }
@@ -73,53 +80,14 @@ public class StockFragment extends Fragment {
         // Inflate the layout for this fragment
         View l = inflater.inflate(R.layout.fragment_stock, container, false);
 
-        // Make the Volley Request
-        RequestQueue rq = Volley.newRequestQueue(this.getContext());
-        String url = "http://dev.markitondemand.com/Api/v2/InteractiveChart/json";
-        JSONObject params = new JSONObject();
-        JSONObject elem = new JSONObject();
-        try {
-            elem.put("Symbol", "AAPL");
-            elem.put("Type", "price");
-            params.put("Normalized", true)
-                    .put("NumberOfDays", 1)
-                    .put("DataPeriod", "Hour")
-                    .put("DataInterval", 1)
-                    .put("Elements", new JSONArray().put(elem));
+        // 1 day chart
+        String url = "https://chart.yahoo.com/z?t=1d&s="+mSymbol;
+        ImageView iv = (ImageView)l.findViewById(R.id.imageView);
+        Picasso.with(this.getContext()).load(url).into(iv);
 
-            Log.d("IDK Obj", params.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(com.android.volley.Request.Method.GET,
-                url,
-                params,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-
-                        Log.d("IDK Success", response.toString());
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("IDK Error", error.toString());
-                    }
-                }
-        );
-        rq.add(jsonRequest);
-
-        // On success, it should call placeStockData()
-
-        // placeStockData should parse json
-
-        // use json to build graph
-
-        // place graph into the graphview
-
-
+        String price = String.format("$%1$.2f", mPrice);
+        ((TextView)l.findViewById(R.id.textCompanyName)).setText(mName);
+        ((TextView)l.findViewById(R.id.textCompanyPrice)).setText(price);
         return l;
     }
 

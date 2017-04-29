@@ -2,6 +2,7 @@ package com.poweriii.portfoliolio;
 
 import android.content.Context;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -14,16 +15,18 @@ import android.widget.TextView;
 public class StockListAdapter extends BaseAdapter {
 
     private Context ctx;
-    private String[] names;
+    private Portfolio portfolio;
+    private LayoutInflater mInflater;
 
-    public StockListAdapter(Context c, String[] n ){
+    public StockListAdapter(Context c, Portfolio p ){
         ctx = c;
-        names = n;
+        portfolio = p;
+        mInflater = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
     public int getCount() {
-        return names.length;
+        return portfolio.stocks.size();
     }
 
     @Override
@@ -39,10 +42,10 @@ public class StockListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView t = new TextView(this.ctx);
-        t.setText( names[position] );
+        t.setText( portfolio.stocks.get(position).mStockSymbol );
         t.setGravity(Gravity.CENTER_HORIZONTAL);
         t.setTextSize(24);
-        t.setPadding(10, 8, 10, 8);
+        t.setElevation(5);
         return t;
     }
 

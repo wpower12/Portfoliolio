@@ -7,7 +7,11 @@
     <!-- TODO: Update blank fragment layout -->
 
     <ListView
+        android:id="@+id/list_view"
+        style="@android:style/Widget.Material.ListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/list_view" />
+        android:background="@color/off_white"
+        android:elevation="5dp"
+        android:headerDividersEnabled="true" />
 </FrameLayout>

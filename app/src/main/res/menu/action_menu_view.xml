@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/new_stock"
-        android:icon="@android:drawable/ic_input_add"
-        android:visible="true"
+    <item
+        android:id="@+id/new_stock"
         android:enabled="true"
-        android:showAsAction="always"
-        android:title="Add" />
+        android:icon="@android:drawable/ic_menu_add"
+        android:showAsAction="ifRoom"
+        android:title="@string/add"
+        android:visible="true" />
+
+    <item
+        android:id="@+id/delete_portfolio"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:showAsAction="withText|collapseActionView"
+        android:title="@string/delete_port" />
 </menu>
