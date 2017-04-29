@@ -4,6 +4,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="add">Add Stock</string>
+    <string name="symbol_not_found">Symbol Not Found</string>
     <string name="delete_port">Delete Portfolio</string>
     <string name="cancel">Cancel</string>
     <string name="symbol">Symbol</string>

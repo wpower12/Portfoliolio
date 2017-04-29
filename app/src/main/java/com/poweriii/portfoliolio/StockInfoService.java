@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -49,13 +50,20 @@ public class StockInfoService extends Service {
 
                         // Create stock
                         try {
-                            String name = response.getString("Name");
-                            Double price = response.getDouble("LastPrice");
-                            Stock s = new Stock( symbol, name, price );
-
                             Intent intent = new Intent();
                             intent.setAction("com.poweriii.portfoliolio.STOCKREADY");
-                            intent.putExtra("STOCK", s);
+                            if( response.isNull("Message") ){
+                                String name = response.getString("Name");
+                                Double price = response.getDouble("LastPrice");
+                                Stock s = new Stock( symbol, name, price );
+
+                                intent.putExtra("VALID", true);
+                                intent.putExtra("STOCK", s);
+                            } else {
+                                Log.d("IDK", "Response came back with invalid symbol");
+                                intent.putExtra("VALID", false);
+                            }
+
                             sendBroadcast(intent);
 
                         } catch (JSONException e) {

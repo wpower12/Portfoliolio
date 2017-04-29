@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 
 public class PortfolioActivity extends Activity implements PortfolioListFragment.PortfolioInterface {
 
+    public final static int BAD_SYMBOL_FLAG = 1;
     private final static String FILE_URI = "stock_data";
     private FragmentManager mFragManager;
     private PortfolioListFragment mPortfolioFragment;
@@ -52,8 +54,12 @@ public class PortfolioActivity extends Activity implements PortfolioListFragment
     private BroadcastReceiver mNewStockReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Stock s = (Stock)intent.getSerializableExtra("STOCK");
-            addNewStock(s);
+            if( !intent.getBooleanExtra("VALID", false) ){
+                Toast.makeText(context, R.string.symbol_not_found, Toast.LENGTH_SHORT).show();
+            } else {
+                Stock s = (Stock)intent.getSerializableExtra("STOCK");
+                addNewStock(s);
+            }
         }
     };
 
