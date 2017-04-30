@@ -1,6 +1,7 @@
 package com.poweriii.portfoliolio;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
@@ -17,6 +18,10 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 /**
  * Created by wkp3 on 4/25/17.
  */
@@ -24,12 +29,39 @@ import org.json.JSONObject;
 public class StockInfoService extends Service {
 
     private final String QUOTE_URL = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json/?symbol=";
-
     private final IBinder mBinder = new StockInfoBinder();
+    private Portfolio p;
+    private Thread mLoopThread;
+    private final long TIMER_INTERVAL = 60000L;
 
     @Override
     public IBinder onBind(Intent intent) {
+        if( mLoopThread == null ){
+            mLoopThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while( true ){
+                        if( mLoopThread.isInterrupted() ){
+                            return;
+                        }
+                        updatePortfolioRequest();
+                        try {
+                            Thread.sleep(TIMER_INTERVAL);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+        mLoopThread.start();
         return mBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        mLoopThread.interrupt();
+        return super.onUnbind(intent);
     }
 
     public class StockInfoBinder extends Binder {
@@ -38,17 +70,15 @@ public class StockInfoService extends Service {
         }
     }
 
-    public void sendStockRequest(final String symbol){
-        // TODO - add the stuff to actually make the JSON call.
-        Log.d("StockService", "Called get Stock");
+    // Exposed Methods - The JSON Requests *********************************************************
 
+    public void sendStockRequest(final String symbol){
+        Log.d("StockService", "Making json request to miod");
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET, QUOTE_URL+symbol, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.d("SIS IDK", "onResponse: "+response.toString());
-
-                        // Create stock
                         try {
                             Intent intent = new Intent();
                             intent.setAction("com.poweriii.portfoliolio.STOCKREADY");
@@ -56,30 +86,96 @@ public class StockInfoService extends Service {
                                 String name = response.getString("Name");
                                 Double price = response.getDouble("LastPrice");
                                 Stock s = new Stock( symbol, name, price );
-
                                 intent.putExtra("VALID", true);
                                 intent.putExtra("STOCK", s);
                             } else {
-                                Log.d("IDK", "Response came back with invalid symbol");
+                                Log.d("SIS IDK", "Response came back with invalid symbol");
                                 intent.putExtra("VALID", false);
                             }
-
                             sendBroadcast(intent);
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-
+                        Log.d("SIS IDK", "Volley failed to make JSON request");
                     }
                 });
         RequestQueue rq = Volley.newRequestQueue(this);
         rq.add(jsObjRequest);
+    }
+
+    public void updatePortfolioRequest(){
+        // Read in portfolio object
+        p = readPortfolio();
+        RequestQueue rq = Volley.newRequestQueue(this);
+        for( int i = 0; i < p.stocks.size(); i++ ){
+            final int stock_id = i;
+            String symbol = p.stocks.get(i).mStockSymbol;
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                    (Request.Method.GET, QUOTE_URL+symbol, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            Log.d("SIS IDK", "Updating a stock");
+                            try {
+                                if( response.isNull("Message") ){
+                                    Double price = response.getDouble("LastPrice");
+                                    p.stocks.get(stock_id).mStockPrice = price;
+                                } else {
+                                    Log.d("SIS IDK", "Response came back with invalid symbol");
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            if( stock_id == p.stocks.size()-1 ){
+                                // Last request?
+                                finalizeUpdatePortfolio();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.d("SIS IDK", "Volley failed to make JSON request");
+                        }
+                    });
+            rq.add(jsObjRequest);
+        }
+    }
+
+    // Helper Methods ******************************************************************************
+
+    private void finalizeUpdatePortfolio(){
+        writePortfolio(p);
+        Intent intent = new Intent();
+        intent.setAction("com.poweriii.portfoliolio.PORTFOLIO");
+        sendBroadcast(intent);
+    }
+
+    private void writePortfolio( Portfolio p ){
+        try {
+            ObjectOutputStream os = new ObjectOutputStream(openFileOutput(PortfolioActivity.FILE_URI,
+                                                           Context.MODE_PRIVATE));
+            os.writeObject( p );
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Portfolio readPortfolio(){
+        Portfolio ret = null;
+        try {
+            ObjectInputStream is = new ObjectInputStream(openFileInput(PortfolioActivity.FILE_URI));
+            ret = (Portfolio)is.readObject();
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return ret;
     }
 
 }

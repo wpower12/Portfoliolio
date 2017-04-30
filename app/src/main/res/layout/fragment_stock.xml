@@ -26,39 +26,38 @@
             android:elevation="5dp" />
     </FrameLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight=".25"
         android:theme="@android:style/Theme.Material.Light.DialogWhenLarge">
 
         <TextView
-            android:id="@+id/textCompanyPrice"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true"
-            android:gravity="center"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:text="$120.00"
-            android:textSize="30sp"
-            tools:ignore="HardcodedText" />
-
-        <TextView
             android:id="@+id/textCompanyName"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_toStartOf="@+id/textCompanyPrice"
+            android:layout_weight="0.5"
             android:elevation="0dp"
             android:gravity="center"
             android:text="Company Name"
             android:textAlignment="gravity"
             android:textSize="25sp"
             android:textStyle="bold"
+            tools:ignore="HardcodedText,NestedWeights" />
+
+        <TextView
+            android:id="@+id/textCompanyPrice"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:gravity="center"
+            android:paddingBottom="0dp"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:text="$120.00"
+            android:textSize="30sp"
             tools:ignore="HardcodedText" />
-    </RelativeLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

@@ -27,7 +27,7 @@ import java.util.ArrayList;
 public class PortfolioActivity extends Activity implements PortfolioListFragment.PortfolioInterface {
 
     public final static int BAD_SYMBOL_FLAG = 1;
-    private final static String FILE_URI = "stock_data";
+    public final static String FILE_URI = "stock_data";
     private FragmentManager mFragManager;
     private PortfolioListFragment mPortfolioFragment;
 
