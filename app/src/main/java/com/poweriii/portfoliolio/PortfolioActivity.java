@@ -89,7 +89,11 @@ public class PortfolioActivity extends Activity implements PortfolioListFragment
         registerReceiver(mUpdatedPortfolioReceiver,
                          new IntentFilter("com.poweriii.portfoliolio.PORTFOLIO"));
 
-        mPortfolio = readFile();
+        // Storage file might not exist, say its the first run.
+        if((mPortfolio = readFile()) == null){
+            mPortfolio = new Portfolio();
+        }
+
         mPortfolioFragment = PortfolioListFragment.newInstance(mPortfolio);
         mFragManager = getFragmentManager();
         mFragManager.beginTransaction()
@@ -117,6 +121,8 @@ public class PortfolioActivity extends Activity implements PortfolioListFragment
         }
     }
 
+    // Option Menu Callbacks ***********************************************************************
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.action_menu_view, menu);
@@ -126,7 +132,6 @@ public class PortfolioActivity extends Activity implements PortfolioListFragment
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if( item.getItemId() == R.id.new_stock ){
-
             final Dialog dialog = new Dialog(this);
             dialog.setContentView(R.layout.dialog_newstock);
             dialog.setTitle("Enter Stock Symbol");

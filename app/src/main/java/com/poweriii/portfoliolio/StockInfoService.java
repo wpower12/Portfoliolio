@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -30,7 +29,7 @@ public class StockInfoService extends Service {
 
     private final String QUOTE_URL = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json/?symbol=";
     private final IBinder mBinder = new StockInfoBinder();
-    private Portfolio p;
+    private Portfolio mPortfolio;
     private Thread mLoopThread;
     private final long TIMER_INTERVAL = 60000L;
 
@@ -70,7 +69,7 @@ public class StockInfoService extends Service {
         }
     }
 
-    // Exposed Methods - The JSON Requests *********************************************************
+    // Exposed Methods - The JSON Request *********************************************************
 
     public void sendStockRequest(final String symbol){
         Log.d("StockService", "Making json request to miod");
@@ -107,13 +106,28 @@ public class StockInfoService extends Service {
         rq.add(jsObjRequest);
     }
 
+    // Helper Methods ******************************************************************************
+
+    private void finalizeUpdatePortfolio(){
+        writePortfolio(mPortfolio);
+        Intent intent = new Intent();
+        intent.setAction("com.poweriii.portfoliolio.PORTFOLIO");
+        sendBroadcast(intent);
+    }
+
     public void updatePortfolioRequest(){
         // Read in portfolio object
-        p = readPortfolio();
+        mPortfolio = readPortfolio();
+
+        // If the File doesnt exist yet, just stop.
+        if( mPortfolio == null ){
+            return;
+        }
+
         RequestQueue rq = Volley.newRequestQueue(this);
-        for( int i = 0; i < p.stocks.size(); i++ ){
+        for(int i = 0; i < mPortfolio.stocks.size(); i++ ){
             final int stock_id = i;
-            String symbol = p.stocks.get(i).mStockSymbol;
+            String symbol = mPortfolio.stocks.get(i).mStockSymbol;
             JsonObjectRequest jsObjRequest = new JsonObjectRequest
                     (Request.Method.GET, QUOTE_URL+symbol, null, new Response.Listener<JSONObject>() {
                         @Override
@@ -122,14 +136,14 @@ public class StockInfoService extends Service {
                             try {
                                 if( response.isNull("Message") ){
                                     Double price = response.getDouble("LastPrice");
-                                    p.stocks.get(stock_id).mStockPrice = price;
+                                    mPortfolio.stocks.get(stock_id).mStockPrice = price;
                                 } else {
                                     Log.d("SIS IDK", "Response came back with invalid symbol");
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                            if( stock_id == p.stocks.size()-1 ){
+                            if( stock_id == mPortfolio.stocks.size()-1 ){
                                 // Last request?
                                 finalizeUpdatePortfolio();
                             }
@@ -142,15 +156,6 @@ public class StockInfoService extends Service {
                     });
             rq.add(jsObjRequest);
         }
-    }
-
-    // Helper Methods ******************************************************************************
-
-    private void finalizeUpdatePortfolio(){
-        writePortfolio(p);
-        Intent intent = new Intent();
-        intent.setAction("com.poweriii.portfoliolio.PORTFOLIO");
-        sendBroadcast(intent);
     }
 
     private void writePortfolio( Portfolio p ){

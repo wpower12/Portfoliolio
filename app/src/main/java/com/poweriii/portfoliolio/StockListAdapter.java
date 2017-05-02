@@ -42,7 +42,7 @@ public class StockListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView t = new TextView(this.ctx);
-        t.setText( portfolio.stocks.get(position).mStockSymbol );
+        t.setText( portfolio.stocks.get(position).mStockSymbol.toUpperCase() );
         t.setGravity(Gravity.CENTER_HORIZONTAL);
         t.setTextSize(24);
         t.setElevation(5);
